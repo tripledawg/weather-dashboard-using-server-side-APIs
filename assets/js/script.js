@@ -28,6 +28,18 @@
 
 //accept user input and store in city varaible
 
+
+//DOM Variables
+var dayCard = document.createElement("div"); 
+var dayBody = document.createElement("div");
+var dayHeader = document.createElement("h3");
+
+var temp = document.createElement("p"); 
+var humidity =document.createElement("p");
+var windSpeed = document.createElement("p"); 
+var icon = document.createElement("img"); 
+
+
 var userSearchInput = ""; 
 var citySearched = "";
 var defaultCity = "Atlanta"
@@ -35,6 +47,7 @@ var APIKey = "c26d4f483a9680cf07042618df1ef271";
 var queryURL = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey;
 var requestURLMelbourneFl = "https://api.openweathermap.org/data/2.5/onecall?lat=28.08&lon=80.60&exclude=hourly,minutely,alerts&appid=c26d4f483a9680cf07042618df1ef271";
 var rootWeatherAPI = "https://api.openweathermap.org"
+
 //https://openweathermap.org/api/geocoding-api#direct// 
 function generateLatLonFromCity () {
 
