@@ -28,57 +28,73 @@
 
 //accept user input and store in city varaible
 
+var searchHistory = [];
+var apiRootUrl = 'https://api.openweathermap.org';
+var apiKey = "c26d4f483a9680cf07042618df1ef271";
 
 //DOM Variables
-var dayCard = document.createElement("div"); 
+var dayCard = document.createElement("div");
 var dayBody = document.createElement("div");
 var dayHeader = document.createElement("h3");
 
-var temp = document.createElement("p"); 
-var humidity =document.createElement("p");
-var windSpeed = document.createElement("p"); 
-var icon = document.createElement("img"); 
+var temp = document.createElement("p");
+var humidity = document.createElement("p");
+var windSpeed = document.createElement("p");
+var icon = document.createElement("img");
 
 
-var userSearchInput = ""; 
+var userSearchInput = "";
 var citySearched = "";
 var defaultCity = "Atlanta"
-var APIKey = "c26d4f483a9680cf07042618df1ef271";
-var queryURL = "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + APIKey;
+
+var queryURL = "http://api.openweathermap.org/data/2.5/weather?q=" + defaultCity + "&appid=" + apiKey;
 var requestURLMelbourneFl = "https://api.openweathermap.org/data/2.5/onecall?lat=28.08&lon=80.60&exclude=hourly,minutely,alerts&appid=c26d4f483a9680cf07042618df1ef271";
-var rootWeatherAPI = "https://api.openweathermap.org"
+var rootWeatherAPI = "https://api.openweathermap.org";
+
+var searchInputBox = document.getElementById("search-input");
+var searchButton = document.getElementById("search-button");
+searchButton.addEventListener("click", getWeather);
 
 //https://openweathermap.org/api/geocoding-api#direct// 
-function generateLatLonFromCity () {
+function generateLatLonFromCity() {
 
     return city;
 };
 
+function wrapRequest() {
+    fetch(requestURLMelbourneFl)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (data) {
+            console.log("fetch respnse \n----------");
+            console.log(data);
+        });
+}
 
-fetch (queryURL)
-.then(function (response) {
-    return response .json();
-})
-.then (function (data){
-    console.log("fetch respnse \n----------");
-    console.log(data); 
-}); 
-////
+function getWeather(event) {
+    event.preventDefault();
+    var cityName = searchInputBox.value.trim();
+    var latLon = getCityLatLon(cityName);
+    var weatherDataCall = apiRootUrl + "/data/2.5/onecall?lat=" + latLon.lat + "&lon=" + latLon.lon + "&exclude=hourly,minutely,alerts&appid=" + apiKey;
+    console.log(weatherDataCall);
+    var weatherData = fetch(weatherDataCall)
+    .then(function (response) {
+        return response.json();
+    }).then(function (data) {
+        console.log(data);
+    })
+}
 
-
-fetch (requestURL)
-.then(function (response) {
-    return response .json(); 
-})
-.then (function (data) {
-    console.log("fetch response \n-----------");
-    console.log(data);
-    var container = document.getElementById('day-1');
-    var dayOneEl=document.createElement('p');
-    for (var i = 0; i < data.length; i++) {
-    console.log(data[i].daily.weather.id);
-    dayOneEl.textContent=data[i].daily.weather.id;
-    container.append(dayOneEl);
-
-    }
-});
+function getCityLatLon(cityName) {
+    var geoAPICall = apiRootUrl + "/geo/1.0/direct?q=" + cityName + "&limit=5&appid=" + apiKey;
+    var latLon = fetch(geoAPICall)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (data) {
+            return data[0];
+        });
+        console.log(latLon);
+    return latLon; 
+}
