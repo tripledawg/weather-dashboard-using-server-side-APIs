@@ -1,41 +1,8 @@
-//var for current day formatted to 3/30/2021 look
-//local storage for persistent data
-//var for API call
-//search button function, whatever city load temp, wind, humidity and UV index to jumbotron and 5 day to footer
-//city button functions to  populate current temp wind humidity and UV index to the jumbotron and 5 day to the footer
-//UV index color coded based on severity (favorable, moderate, severe)
-
-//weather api key c26d4f483a9680cf07042618df1ef271
-
-//current city name  --get from variable name assigned to lat lon??
-//var city; 
-//api call search city api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
-//eg api.openweathermap.org/data/2.5/weather?q=Atlanta&appid=c26d4f483a9680cf07042618df1ef271
-//eg api.openweathermap.org/data/2.5/find?q=Atlanta&appid={c26d4f483a9680cf07042618df1ef271
-//eg api.openweathermap.org/data/2.5/find?q={city}&appid={apid}
-//{current}dt for date  and use moment formatting??  current.dt
-//{current}/[weather]/icon: value  for picture  current.weather.id.??val??
-//{current}/temp current.temp 
-//{current}/wind_speed  current.wind_speed
-//{current}/humidity   current.humiditiy
-//{current}/uvi w/color coded function  current.uvi.id
-
-//{daily}/day of the week  use moment??  daily.dt
-//{daily}/temp daily.temp
-//{daily}/wind  daily.wind_speed
-//{daily}/humidity  daily.humidity
-//{daily}/[weather]/icon: value  for picture  daily.weather.id.??val??
-
-//accept user input and store in city varaible
+//Global Variables
 
 var apiRootUrl = 'https://api.openweathermap.org';
 var apiKey = "c26d4f483a9680cf07042618df1ef271";
 var apiImage = "/img/w/";
-
-//DOM Variables
-var dayCard = document.createElement("div");
-var dayBody = document.createElement("div");
-var dayHeader = document.createElement("h3");
 
 var userSearchHistory = [];
 var citySearched = "";
@@ -45,9 +12,18 @@ var queryURL = "http://api.openweathermap.org/data/2.5/weather?q=" + defaultCity
 var requestURLMelbourneFl = "https://api.openweathermap.org/data/2.5/onecall?lat=28.08&lon=80.60&exclude=hourly,minutely,alerts&appid=c26d4f483a9680cf07042618df1ef271";
 var rootWeatherAPI = "https://api.openweathermap.org";
 
+//DOM Variables
+var dayCard = document.createElement("div");
+var dayBody = document.createElement("div");
+var dayHeader = document.createElement("h3");
+
 var searchInputBox = document.getElementById("search-input");
 var searchButton = document.getElementById("search-button");
+
+//Button
 searchButton.addEventListener("click", getCityLatLon);
+
+//Function to load search history from local storage if there is any
 
 var storedUserSearchHistory = localStorage.getItem('user-search-history');
 if (storedUserSearchHistory) {
@@ -55,9 +31,7 @@ if (storedUserSearchHistory) {
 }
 createHistoryButtons();
 
-//https://openweathermap.org/api/geocoding-api#direct// 
-
-
+//API call function uses concatenation to call the daily weather only and calls the function to populate it if API call worked; function also checks if call status is 200 and if not returns error
 function getWeather(cityCoordinates) {
     var weatherDataCall = apiRootUrl + "/data/2.5/onecall?lat=" + cityCoordinates.lat + "&lon=" + cityCoordinates.lon + "&exclude=hourly,minutely,alerts&appid=" + apiKey;
     fetch(weatherDataCall)
@@ -76,6 +50,7 @@ function getWeather(cityCoordinates) {
         });
 }
 
+//This function takes user search data and adds it to local storage, calls the function to make each search a button, and also runs the API call using the geo locator part of the API
 function getCityLatLon() {
     citySearched = searchInputBox.value;
     if (!userSearchHistory.includes(citySearched)) {
@@ -101,10 +76,14 @@ function getCityLatLon() {
         });
 }
 
+//This function takes the daily weather API call and uses it call the functions to populate both the current day and the 5 day forecast
+
 function populateWeather(weatherData) {
     populateTodayWeather(weatherData.current);
     populateForecast(weatherData.daily);
 }
+
+//This function uses the zero index of the array to pull various weather data for the current day
 
 function populateTodayWeather(currentWeather) {
     var icon = currentWeather.weather[0].icon;
@@ -119,12 +98,22 @@ function populateTodayWeather(currentWeather) {
 
     cityNameDiv.textContent = citySearched;
     dateDiv.textContent = getDate(currentWeather.dt); // convert to date and time
-    temperatureDiv.textContent = convertTemp(currentWeather.temp) + "\u00B0F";
+    temperatureDiv.textContent = "Temperature: " + convertTemp(currentWeather.temp) + "\u00B0F";
     conditionsImg.setAttribute("src", getIcon(icon));
-    humidityDiv.textContent = currentWeather.humidity + "%";
-    windSpeedDiv.textContent = currentWeather.wind_speed + "mph";
+    humidityDiv.textContent = "Humidity: " + currentWeather.humidity + "%";
+    windSpeedDiv.textContent = "Wind Speed: " + currentWeather.wind_speed + "mph";
     uvIndexDiv.textContent = "UV index: " + currentWeather.uvi;
+    //this color coding fucntion for the UV index is not working
+    // if (uvi < 3){
+    //     uvIndexDiv.setAttribute(style="color ;green");
+    // } else if (uvi < 7) {
+    //     uvIndexDiv.setAttribute(style="color: orange");
+    // } else {
+    //     uvIndexDiv.setAttribute(syle="color: red");
+    // }
 }
+
+//This function starts at the 1 index of the data array to pull data starting at tomorrow
 
 function populateForecast(dailyWeather) {
     console.log(dailyWeather);
@@ -142,18 +131,22 @@ function populateForecast(dailyWeather) {
     }
 }
 
+//This function turns the weather icon code into a PNG image file. 
 function getIcon(iconId) {
     return apiRootUrl + apiImage + iconId + ".png";
 }
-
+//This function takes the weather data and converts it from Kelvin to Fahrenheit. 
 function convertTemp(tempKelvin) {
     return Math.trunc((tempKelvin - 273.15) * 9 / 5 + 32);
 }
+
+//This fucntion uses moment.js to interpret the timestamp data from the weather API. 
 
 function getDate(timestamp) {
     return moment.unix(timestamp).format('l')
 }
 
+//This function uses DOM manipulation to create and append a button element to the useSearchHistory for each unique search history item.
 function createHistoryButtons() {
     var userSearchButtons = document.getElementById("user-search-buttons");
     userSearchButtons.innerHTML = '';
@@ -165,6 +158,7 @@ function createHistoryButtons() {
     }
 }
 
+//This function prevents the default and calls the getCityLatLon function 
 function getSearchButtonWeather(e) {
     e.preventDefault();
     searchInputBox.value = this.textContent;
