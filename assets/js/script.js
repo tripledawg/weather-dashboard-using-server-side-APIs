@@ -28,22 +28,16 @@
 
 //accept user input and store in city varaible
 
-var searchHistory = [];
 var apiRootUrl = 'https://api.openweathermap.org';
 var apiKey = "c26d4f483a9680cf07042618df1ef271";
+var apiImage = "/img/w/";
 
 //DOM Variables
 var dayCard = document.createElement("div");
 var dayBody = document.createElement("div");
 var dayHeader = document.createElement("h3");
 
-var temp = document.createElement("p");
-var humidity = document.createElement("p");
-var windSpeed = document.createElement("p");
-var icon = document.createElement("img");
-
-
-var userSearchInput = "";
+var userSearchHistory = [];
 var citySearched = "";
 var defaultCity = "Atlanta"
 
@@ -53,48 +47,126 @@ var rootWeatherAPI = "https://api.openweathermap.org";
 
 var searchInputBox = document.getElementById("search-input");
 var searchButton = document.getElementById("search-button");
-searchButton.addEventListener("click", getWeather);
+searchButton.addEventListener("click", getCityLatLon);
+
+var storedUserSearchHistory = localStorage.getItem('user-search-history');
+if (storedUserSearchHistory) {
+    userSearchHistory = JSON.parse(storedUserSearchHistory);
+}
+createHistoryButtons();
 
 //https://openweathermap.org/api/geocoding-api#direct// 
-function generateLatLonFromCity() {
 
-    return city;
-};
 
-function wrapRequest() {
-    fetch(requestURLMelbourneFl)
+function getWeather(cityCoordinates) {
+    var weatherDataCall = apiRootUrl + "/data/2.5/onecall?lat=" + cityCoordinates.lat + "&lon=" + cityCoordinates.lon + "&exclude=hourly,minutely,alerts&appid=" + apiKey;
+    fetch(weatherDataCall)
         .then(function (response) {
             return response.json();
         })
         .then(function (data) {
-            console.log("fetch respnse \n----------");
-            console.log(data);
+            if (!data.status === 200) {
+                console.error("Invalid data returned!");
+            } else {
+                populateWeather(data);
+            }
+        })
+        .catch(function (err) {
+            console.error(err);
         });
 }
 
-function getWeather(event) {
-    event.preventDefault();
-    var cityName = searchInputBox.value.trim();
-    var latLon = getCityLatLon(cityName);
-    var weatherDataCall = apiRootUrl + "/data/2.5/onecall?lat=" + latLon.lat + "&lon=" + latLon.lon + "&exclude=hourly,minutely,alerts&appid=" + apiKey;
-    console.log(weatherDataCall);
-    var weatherData = fetch(weatherDataCall)
-    .then(function (response) {
-        return response.json();
-    }).then(function (data) {
-        console.log(data);
-    })
-}
-
-function getCityLatLon(cityName) {
-    var geoAPICall = apiRootUrl + "/geo/1.0/direct?q=" + cityName + "&limit=5&appid=" + apiKey;
-    var latLon = fetch(geoAPICall)
+function getCityLatLon() {
+    citySearched = searchInputBox.value;
+    if (!userSearchHistory.includes(citySearched)) {
+        userSearchHistory.push(citySearched);
+        localStorage.setItem('user-search-history', JSON.stringify(userSearchHistory));
+        createHistoryButtons();
+    }
+    var geoAPICall = apiRootUrl + "/geo/1.0/direct?q=" + citySearched + "&limit=5&appid=" + apiKey;
+    fetch(geoAPICall)
         .then(function (response) {
             return response.json();
         })
         .then(function (data) {
-            return data[0];
+            if (!data[0]) {
+                console.error("Invalid data returned!")
+            } else {
+                // add item to search history
+                getWeather(data[0]);
+            }
+        })
+        .catch(function (err) {
+            console.error(err);
         });
-        console.log(latLon);
-    return latLon; 
+}
+
+function populateWeather(weatherData) {
+    populateTodayWeather(weatherData.current);
+    populateForecast(weatherData.daily);
+}
+
+function populateTodayWeather(currentWeather) {
+    var icon = currentWeather.weather[0].icon;
+
+    var cityNameDiv = document.getElementById("name");
+    var dateDiv = document.getElementById("date");
+    var conditionsImg = document.getElementById("conditions");
+    var temperatureDiv = document.getElementById("temp");
+    var humidityDiv = document.getElementById("humidity");
+    var windSpeedDiv = document.getElementById("windspeed");
+    var uvIndexDiv = document.getElementById("uvIndex");
+
+    cityNameDiv.textContent = citySearched;
+    dateDiv.textContent = getDate(currentWeather.dt); // convert to date and time
+    temperatureDiv.textContent = convertTemp(currentWeather.temp) + "\u00B0F";
+    conditionsImg.setAttribute("src", getIcon(icon));
+    humidityDiv.textContent = currentWeather.humidity + "%";
+    windSpeedDiv.textContent = currentWeather.wind_speed + "mph";
+    uvIndexDiv.textContent = "UV index: " + currentWeather.uvi;
+}
+
+function populateForecast(dailyWeather) {
+    console.log(dailyWeather);
+    var cards = document.getElementsByClassName("card");
+    for (var i = 0; i < cards.length; i++) {
+        var cardHead = cards[i].getElementsByClassName("card-header");
+        cardHead[0].textContent = getDate(dailyWeather[i + 1].dt);
+
+        var cardText = cards[i].getElementsByClassName("card-text");
+        var iconUrl = getIcon(dailyWeather[i + 1].weather[0].icon);
+        cardText[0].setAttribute('src', iconUrl);
+        cardText[1].textContent = "Temp: " + convertTemp(dailyWeather[i + 1].temp.day) + "\u00B0F";
+        cardText[2].textContent = "Wind: " + dailyWeather[i + 1].wind_speed + "mph";
+        cardText[3].textContent = "Humidity: " + dailyWeather[i + 1].humidity + "%";
+    }
+}
+
+function getIcon(iconId) {
+    return apiRootUrl + apiImage + iconId + ".png";
+}
+
+function convertTemp(tempKelvin) {
+    return Math.trunc((tempKelvin - 273.15) * 9 / 5 + 32);
+}
+
+function getDate(timestamp) {
+    return moment.unix(timestamp).format('l')
+}
+
+function createHistoryButtons() {
+    var userSearchButtons = document.getElementById("user-search-buttons");
+    userSearchButtons.innerHTML = '';
+    for (var i = 0; i < userSearchHistory.length; i++) {
+        var historyButton = document.createElement("button");
+        historyButton.textContent = userSearchHistory[i];
+        historyButton.addEventListener("click", getSearchButtonWeather);
+        userSearchButtons.append(historyButton);
+    }
+}
+
+function getSearchButtonWeather(e) {
+    e.preventDefault();
+    searchInputBox.value = this.textContent;
+    getCityLatLon();
 }
