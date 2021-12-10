@@ -67,7 +67,6 @@ function getCityLatLon() {
             if (!data[0]) {
                 console.error("Invalid data returned!")
             } else {
-                // add item to search history
                 getWeather(data[0]);
             }
         })
@@ -76,14 +75,14 @@ function getCityLatLon() {
         });
 }
 
-//This function takes the daily weather API call and uses it call the functions to populate both the current day and the 5 day forecast
+// This function takes the daily weather API call and uses it to call the functions to populate both the current day and the 5 day forecast
 
 function populateWeather(weatherData) {
     populateTodayWeather(weatherData.current);
     populateForecast(weatherData.daily);
 }
 
-//This function uses the zero index of the array to pull various weather data for the current day
+//This function receives the current day's weather and populates fields based on the contents
 
 function populateTodayWeather(currentWeather) {
     var icon = currentWeather.weather[0].icon;
@@ -103,17 +102,17 @@ function populateTodayWeather(currentWeather) {
     humidityDiv.textContent = "Humidity: " + currentWeather.humidity + "%";
     windSpeedDiv.textContent = "Wind Speed: " + currentWeather.wind_speed + "mph";
     uvIndexDiv.textContent = "UV index: " + currentWeather.uvi;
-    //this color coding fucntion for the UV index is not working
+    //this color coding function for the UV index is not working
     // if (uvi < 3){
     //     uvIndexDiv.setAttribute(style="color ;green");
-    // } else if (uvi < 7) {
+    // } else if (uvi <= 6) {
     //     uvIndexDiv.setAttribute(style="color: orange");
     // } else {
     //     uvIndexDiv.setAttribute(syle="color: red");
     // }
 }
 
-//This function starts at the 1 index of the data array to pull data starting at tomorrow
+// This function sets page elements based on the daily forecast for the next 5 days
 
 function populateForecast(dailyWeather) {
     console.log(dailyWeather);
@@ -131,7 +130,7 @@ function populateForecast(dailyWeather) {
     }
 }
 
-//This function turns the weather icon code into a PNG image file. 
+//This function returns a url to get the image file for the supplied icon ID. 
 function getIcon(iconId) {
     return apiRootUrl + apiImage + iconId + ".png";
 }
@@ -140,7 +139,7 @@ function convertTemp(tempKelvin) {
     return Math.trunc((tempKelvin - 273.15) * 9 / 5 + 32);
 }
 
-//This fucntion uses moment.js to interpret the timestamp data from the weather API. 
+//This function uses moment.js to convert a unix timestamp to a /-separated date from the weather API. 
 
 function getDate(timestamp) {
     return moment.unix(timestamp).format('l')
@@ -158,7 +157,7 @@ function createHistoryButtons() {
     }
 }
 
-//This function prevents the default and calls the getCityLatLon function 
+//This function calls the getCityLatLon function when the search button is clicked.
 function getSearchButtonWeather(e) {
     e.preventDefault();
     searchInputBox.value = this.textContent;
