@@ -1,7 +1,7 @@
 # weather-dashboard-using-server-side-APIs
  
 **Screenshot**  
-[screenshot](./weather-dashboard-screenshot.png)
+[screenshot](/weather-dashboard-screenshot800x800.png)
 
 **URL of deployed web page**
 https://tripledawg.github.io/weather-dashboard-using-server-side-APIs/
