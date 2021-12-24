@@ -2,13 +2,17 @@
  
 **Screenshot**  
 ![](/weather-dashboard-screenshot800x800.png)
+![](screenshot2.png)
 
 **URL of deployed web page**
 https://tripledawg.github.io/weather-dashboard-using-server-side-APIs/
 
-## Description
+# Description
 
 This is a weather dashboard that takes user city search data and calls the current temperature, humidity, windspeed and UV index.  It also produces and 5 day forecast with that same data, minus the UV index. The searched cities remain available to the user as a clickable button.
+
+# Technologies Used
+Openweather API, JS, CSS, HTML
 
 ## HTML
 I created placeholder boxes for the weather API data. The placeholders were programmatically populated with JS. 
